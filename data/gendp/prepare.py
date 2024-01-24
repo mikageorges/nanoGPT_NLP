@@ -37,7 +37,7 @@ encoder and decoder and some other related info.
 """                                
 
 text_path = os.path.join(os.path.dirname(__file__), 'input.txt')
-with open(text_path, 'r') as f:
+with open(text_path, 'r', encoding='utf-8') as f:
     data = f.read()
 print(f"length of dataset in characters: {len(data):,}")
 
@@ -82,12 +82,11 @@ with open(os.path.join(os.path.dirname(__file__), 'meta.pkl'), 'wb') as f:
     pickle.dump(meta, f)
 
 #Paramètres du dataset de droit :
-# train.bin is ~ 250 MB, val.bin is ~ 28 MB
-#length of dataset in characters: 141,595,341
+#length of dataset in characters: 136,355,836
 #all the unique characters: 
-# !"#%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz{|} ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÂÃÄÅÊËÌÎÏÐÑáâïŒœŠŸŽƒˆ˜–—‘’‚“”„†‡•…‰‹›€™
-#vocab size: 163
-#train has 127,435,806 tokens
-#val has 14,159,535 tokens             
+# !"#%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz{|} ¤§¨«­°²³µ¸¹º»¼ÀÂÇÈÉÊËÎÔ×ÛàáâäçèéêëíîïóôöùûüýÿăİŒœšţʹ˂ˮ̀̈ΔΣάέήίαβγδεηθικλμνοπςστυχωόώавгдежикмнортуцчᵉ‒–—―‘’“‟•… ‰€∑−∫≤≥■□ﬀﬂ
+#vocab size: 216
+#train has 122,720,252 tokens
+#val has 13,635,584 tokens            
     
 #Ces paramètres sont assez conséquents en taille, donc on a intérêt à faire un bon modèle.
