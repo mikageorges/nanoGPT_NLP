@@ -26,6 +26,7 @@ import numpy as np
 import torch
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import init_process_group, destroy_process_group
+import matplotlib.pyplot as plt
 
 from model import GPTConfig, GPT
 
@@ -52,7 +53,7 @@ block_size = 1024
 n_layer = 12
 n_head = 12
 n_embd = 768
-dropout = 0.0 # for pretraining 0 is good, for finetuning try 0.1+
+dropout = 0 # for pretraining 0 is good, for finetuning try 0.1+
 bias = False # do we use bias inside LayerNorm and Linear layers?
 # adamw optimizer
 learning_rate = 6e-4 # max learning rate
@@ -249,6 +250,8 @@ t0 = time.time()
 local_iter_num = 0 # number of iterations in the lifetime of this process
 raw_model = model.module if ddp else model # unwrap DDP container if needed
 running_mfu = -1.0
+train_loss = []
+val_loss = []
 while True:
 
     # determine and set the learning rate for this iteration
@@ -259,6 +262,7 @@ while True:
     # evaluate the loss on train/val sets and write checkpoints
     if iter_num % eval_interval == 0 and master_process:
         losses = estimate_loss()
+        val_loss.append(losses['val'])
         print(f"step {iter_num}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
         if wandb_log:
             wandb.log({
@@ -321,6 +325,7 @@ while True:
         if local_iter_num >= 5: # let the training loop settle a bit
             mfu = raw_model.estimate_mfu(batch_size * gradient_accumulation_steps, dt)
             running_mfu = mfu if running_mfu == -1.0 else 0.9*running_mfu + 0.1*mfu
+        train_loss.append(lossf)
         print(f"iter {iter_num}: loss {lossf:.4f}, time {dt*1000:.2f}ms, mfu {running_mfu*100:.2f}%")
     iter_num += 1
     local_iter_num += 1
@@ -328,6 +333,20 @@ while True:
     # termination conditions
     if iter_num > max_iters:
         break
+
+#Plot losses and save in a dedicated folder
+train_abs = np.arange(iter_num, step= log_interval)
+val_abs = np.arange(iter_num, step=eval_interval)
+plt.plot(train_abs, train_loss, label='Training loss')
+plt.plot(val_abs, val_loss, label='Validation loss, best = {:.2f}'.format(best_val_loss))
+plt.title('GenDP training, n_layers = {}/{}'.format(n_layer, block_size))
+plt.legend()
+output_folder = os.path.join(os.getcwd(), 'data/gendp/plots')
+print(output_folder)
+output_filename = 'loss_contextsize_{}'.format(block_size)
+plt.savefig(f'{output_folder}/{output_filename}')
+
+plt.show()
 
 if ddp:
     destroy_process_group()
