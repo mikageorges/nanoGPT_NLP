@@ -89,8 +89,12 @@ Les conditions d'accès aux fins de mission publique et de notification des coti
 ---------------
 ```
 
-Ceci est plutôt acceptable, car il n'y a pas d'erreurs grammaticales flagrantes. La sémantique est possiblement améliorable, mais cela nécessiterait plus que du finetuning. Actuellement, cette génération se fait avec un prompt par défaut `\n`, mais il est possible de passer an argument un fichier prompt que le modèle peut compléter, par exemple : 
+Ceci est plutôt acceptable, car il n'y a pas d'erreurs grammaticales et de vocabulaire flagrantes. La sémantique est possiblement améliorable, mais cela nécessiterait plus que du finetuning. Actuellement, cette génération se fait avec un prompt par défaut `\n`, mais il est possible de passer an argument un fichier `prompt.txt` que le modèle peut compléter (même si le contenu généré n'est pas forcément en lien avec le prompt), par exemple : 
+
+```
+$ python .\sample.py --out_dir=out-gendp --start=FILE:prompt.txt
+```
 
 Pour le reste du projet, nous allons essayer d'optimiser certains paramètres, comme la taille du modèle ou la taille du contexte.  
 
-['gendp8'](data/gendp/plots/loss_nlayer8.png)
+!['gendp8'](data/gendp/plots/loss_nlayer8.png)
