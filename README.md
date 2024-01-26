@@ -20,7 +20,7 @@ Dans le dossier /gendp/markdowns, on retrouve les données initiales. On peut le
 $ python .\data\gendp\prepare.py
 ```
 
-Ce script créé aussi un `train.bin` et un `val.bin` dans ce répertoire, ce qui sera utilisé par le script d'entraînement. En commentaire du script se trouve aussi un ordre de grandeur des différents paramètres : 
+Ce script crée aussi un `train.bin` et un `val.bin` dans ce répertoire, ce qui sera utilisé par le script d'entraînement. En commentaire du script se trouve aussi un ordre de grandeur des différents paramètres : 
 
 - Taille du dataset en caractères : ~136M
 - Les caractères uniques : !"#%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz{|} ¤§¨«­°²³µ¸¹º»¼ÀÂÇÈÉÊËÎÔ×ÛàáâäçèéêëíîïóôöùûüýÿăİŒœšţʹ˂ˮ̀̈ΔΣάέήίαβγδεηθικλμνοπςστυχωόώавгдежикмнортуцчᵉ‒–—―‘’“‟•… ‰€∑−∫≤≥■□ﬀﬂ **->** nécessité d'un encodage `UTF-8` lors de la lecture et écriture des textes.
@@ -98,3 +98,4 @@ $ python .\sample.py --out_dir=out-gendp --start=FILE:prompt.txt
 Pour le reste du projet, nous allons essayer d'optimiser certains paramètres, comme la taille du modèle ou la taille du contexte.  
 
 !['gendp8'](data/gendp/plots/loss_nlayer8.png)
+!['gendp8_1024'](data/gendp/plots/loss_contextsize_1024.png)
