@@ -1,227 +1,96 @@
+# NanoGPT : NLP Projet
 
-# nanoGPT
+Ce projet a été effectué dans le cadre du cours Natural Language Processing de Georges-André Silber aux Mines de Paris. Ce projet s'inspire en pratique du [nanoGPT](https://github.com/karpathy/nanoGPT) d'Andrej Karpathy. L'objectif de ce projet est de créer un modèle de langue génératif **gendp** à partir des données du droit pénal. Parmi ces codes, le droit pénal peut être vu comme le code pénal, le code de procédure pénale, le code de la sécurité intérieure, le code pénitentiaire, le code de l'entrée et du séjour des étrangers et du droit d'asile et du code de la route.
 
-![nanoGPT](assets/nanogpt.jpg)
+NanoGPT est un repo permettant un entraînement et un finetuning plus rapide de GPT de taille moyenne (c'est-à-dire une reproduction de GPT-2).
 
-The simplest, fastest repository for training/finetuning medium-sized GPTs. It is a rewrite of [minGPT](https://github.com/karpathy/minGPT) that prioritizes teeth over education. Still under active development, but currently the file `train.py` reproduces GPT-2 (124M) on OpenWebText, running on a single 8XA100 40GB node in about 4 days of training. The code itself is plain and readable: `train.py` is a ~300-line boilerplate training loop and `model.py` a ~300-line GPT model definition, which can optionally load the GPT-2 weights from OpenAI. That's it.
-
-![repro124m](assets/gpt2_124M_loss.png)
-
-Because the code is so simple, it is very easy to hack to your needs, train new models from scratch, or finetune pretrained checkpoints (e.g. biggest one currently available as a starting point would be the GPT-2 1.3B model from OpenAI).
-
-## install
+## Installations préalables
 
 ```
-pip install torch numpy transformers datasets tiktoken wandb tqdm
+pip install matplotlib torch numpy transformers datasets tiktoken wandb tqdm pickle strip_markdown requests
 ```
 
-Dependencies:
+cf. [nanoGPT](https://github.com/karpathy/nanoGPT) pour les dépendances. [strip_markdown](https://pypi.org/project/strip-markdown/) permet de transcrire les textes en markdown en textes, ce qui servira de préparation de données.
 
-- [pytorch](https://pytorch.org) <3
-- [numpy](https://numpy.org/install/) <3
--  `transformers` for huggingface transformers <3 (to load GPT-2 checkpoints)
--  `datasets` for huggingface datasets <3 (if you want to download + preprocess OpenWebText)
--  `tiktoken` for OpenAI's fast BPE code <3
--  `wandb` for optional logging <3
--  `tqdm` for progress bars <3
+## Préparation des données
 
-## quick start
-
-If you are not a deep learning professional and you just want to feel the magic and get your feet wet, the fastest way to get started is to train a character-level GPT on the works of Shakespeare. First, we download it as a single (1MB) file and turn it from raw text into one large stream of integers:
+Dans le dossier /gendp/markdowns, on retrouve les données initiales. On peut les transformer en texte vers le dossier /gendp/texts, et les concaténer en un seul script **input.txt** en faisant : 
 
 ```
-$ python data/shakespeare_char/prepare.py
+$ python .\data\gendp\prepare.py
 ```
 
-This creates a `train.bin` and `val.bin` in that data directory. Now it is time to train your GPT. The size of it very much depends on the computational resources of your system:
+Ce script créé aussi un `train.bin` et un `val.bin` dans ce répertoire, ce qui sera utilisé par le script d'entraînement. En commentaire du script se trouve aussi un ordre de grandeur des différents paramètres : 
 
-**I have a GPU**. Great, we can quickly train a baby GPT with the settings provided in the [config/train_shakespeare_char.py](config/train_shakespeare_char.py) config file:
+- Taille du dataset en caractères : ~136M
+- Les caractères uniques : !"#%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_abcdefghijklmnopqrstuvwxyz{|} ¤§¨«­°²³µ¸¹º»¼ÀÂÇÈÉÊËÎÔ×ÛàáâäçèéêëíîïóôöùûüýÿăİŒœšţʹ˂ˮ̀̈ΔΣάέήίαβγδεηθικλμνοπςστυχωόώавгдежикмнортуцчᵉ‒–—―‘’“‟•… ‰€∑−∫≤≥■□ﬀﬂ **->** nécessité d'un encodage `UTF-8` lors de la lecture et écriture des textes.
+- Taille de vocabulaire : ~216
+- Tokens d'entraînements : ~122M
+- Tokens de validation : ~13M
 
-```
-$ python train.py config/train_shakespeare_char.py
-```
+Ainsi, c'est un bon nombre de paramètres du même ordre de grandeur que GPT2.
 
-If you peek inside it, you'll see that we're training a GPT with a context size of up to 256 characters, 384 feature channels, and it is a 6-layer Transformer with 6 heads in each layer. On one A100 GPU this training run takes about 3 minutes and the best validation loss is 1.4697. Based on the configuration, the model checkpoints are being written into the `--out_dir` directory `out-shakespeare-char`. So once the training finishes we can sample from the best model by pointing the sampling script at this directory:
-
-```
-$ python sample.py --out_dir=out-shakespeare-char
-```
-
-This generates a few samples, for example:
+**Note :** il se peut que l'encodage de script-markdown ne comprenne pas les caractères non-ASCII, tels que `é`. Dans ce cas, nous avons modifié script_markdown.py pour comprendre ces caractères, l.45 :
 
 ```
-ANGELO:
-And cowards it be strawn to my bed,
-And thrust the gates of my threats,
-Because he that ale away, and hang'd
-An one with him.
-
-DUKE VINCENTIO:
-I thank your eyes against it.
-
-DUKE VINCENTIO:
-Then will answer him to save the malm:
-And what have you tyrannous shall do this?
-
-DUKE VINCENTIO:
-If you have done evils of all disposition
-To end his power, the day of thrust for a common men
-That I leave, to fight with over-liking
-Hasting in a roseman.
+        with filename.open('w', encoding='utf-8') as f:
 ```
 
-lol  `¯\_(ツ)_/¯`. Not bad for a character-level model after 3 minutes of training on a GPU. Better results are quite likely obtainable by instead finetuning a pretrained GPT-2 model on this dataset (see finetuning section later).
+## Configuration d'entraînement
 
-**I only have a macbook** (or other cheap computer). No worries, we can still train a GPT but we want to dial things down a notch. I recommend getting the bleeding edge PyTorch nightly ([select it here](https://pytorch.org/get-started/locally/) when installing) as it is currently quite likely to make your code more efficient. But even without it, a simple train run could look as follows:
+Afin d'alléger le script d'entraînement, `train.py` passe par `configurator.py` pour chercher si un fichier config, `config\train_gendp.py`, existe. Ce script contient les différents paramètres nécessaires à l'entraînement, comme le learning rate ou la taille du modèle. 
 
-```
-$ python train.py config/train_shakespeare_char.py --device=cpu --compile=False --eval_iters=20 --log_interval=1 --block_size=64 --batch_size=12 --n_layer=4 --n_head=4 --n_embd=128 --max_iters=2000 --lr_decay_iters=2000 --dropout=0.0
-```
-
-Here, since we are running on CPU instead of GPU we must set both `--device=cpu` and also turn off PyTorch 2.0 compile with `--compile=False`. Then when we evaluate we get a bit more noisy but faster estimate (`--eval_iters=20`, down from 200), our context size is only 64 characters instead of 256, and the batch size only 12 examples per iteration, not 64. We'll also use a much smaller Transformer (4 layers, 4 heads, 128 embedding size), and decrease the number of iterations to 2000 (and correspondingly usually decay the learning rate to around max_iters with `--lr_decay_iters`). Because our network is so small we also ease down on regularization (`--dropout=0.0`). This still runs in about ~3 minutes, but gets us a loss of only 1.88 and therefore also worse samples, but it's still good fun:
+Une fois les paramètres choisis, il suffit de run ceci pour lancer l'entraînement : 
 
 ```
-$ python sample.py --out_dir=out-shakespeare-char --device=cpu
-```
-Generates samples like this:
-
-```
-GLEORKEN VINGHARD III:
-Whell's the couse, the came light gacks,
-And the for mought you in Aut fries the not high shee
-bot thou the sought bechive in that to doth groan you,
-No relving thee post mose the wear
+$ python .\train.py config/train_gendp.py
 ```
 
-Not bad for ~3 minutes on a CPU, for a hint of the right character gestalt. If you're willing to wait longer, feel free to tune the hyperparameters, increase the size of the network, the context length (`--block_size`), the length of training, etc.
+Le script affichera la loss selon un intervalle spécifique. On observe bien qu'on utilise un GPT, qui est un transformeur de 6 couches et 6 têtes par défaut. 
+Avec un GPU Geforce RTX 4060 (qui est très performant!), l'entraînement avec 300 itérations prend quelque minutes, avec une loss de validation minimale d'environ 0.7. Selon la configuration, il est possible d'enregistrer un checkpoint du modèle qui sera réutilisable dans l'entraînement, dans le répertoire `out-gendp`.
 
-Finally, on Apple Silicon Macbooks and with a recent PyTorch version make sure to add `--device=mps` (short for "Metal Performance Shaders"); PyTorch then uses the on-chip GPU that can *significantly* accelerate training (2-3X) and allow you to use larger networks. See [Issue 28](https://github.com/karpathy/nanoGPT/issues/28) for more.
+Une fois l'entraînement satisfaisant, nous pouvons générer du texte sample.
 
-## reproducing GPT-2
+## Génération de texte
 
-A more serious deep learning professional may be more interested in reproducing GPT-2 results. So here we go - we first tokenize the dataset, in this case the [OpenWebText](https://openwebtext2.readthedocs.io/en/latest/), an open reproduction of OpenAI's (private) WebText:
-
-```
-$ python data/openwebtext/prepare.py
-```
-
-This downloads and tokenizes the [OpenWebText](https://huggingface.co/datasets/openwebtext) dataset. It will create a `train.bin` and `val.bin` which holds the GPT2 BPE token ids in one sequence, stored as raw uint16 bytes. Then we're ready to kick off training. To reproduce GPT-2 (124M) you'll want at least an 8X A100 40GB node and run:
+Le sampling s'effectue comme ceci : 
 
 ```
-$ torchrun --standalone --nproc_per_node=8 train.py config/train_gpt2.py
+$ python .\sample.py --out_dir=out-gendp
 ```
 
-This will run for about 4 days using PyTorch Distributed Data Parallel (DDP) and go down to loss of ~2.85. Now, a GPT-2 model just evaluated on OWT gets a val loss of about 3.11, but if you finetune it it will come down to ~2.85 territory (due to an apparent domain gap), making the two models ~match.
+Le script est aussi paramétrable : le nombre de samples, le nombre de tokens (donc le nombre de caractères maximal)...
 
-If you're in a cluster environment and you are blessed with multiple GPU nodes you can make GPU go brrrr e.g. across 2 nodes like:
-
-```
-Run on the first (master) node with example IP 123.456.123.456:
-$ torchrun --nproc_per_node=8 --nnodes=2 --node_rank=0 --master_addr=123.456.123.456 --master_port=1234 train.py
-Run on the worker node:
-$ torchrun --nproc_per_node=8 --nnodes=2 --node_rank=1 --master_addr=123.456.123.456 --master_port=1234 train.py
-```
-
-It is a good idea to benchmark your interconnect (e.g. iperf3). In particular, if you don't have Infiniband then also prepend `NCCL_IB_DISABLE=1` to the above launches. Your multinode training will work, but most likely _crawl_. By default checkpoints are periodically written to the `--out_dir`. We can sample from the model by simply `$ python sample.py`.
-
-Finally, to train on a single GPU simply run the `$ python train.py` script. Have a look at all of its args, the script tries to be very readable, hackable and transparent. You'll most likely want to tune a number of those variables depending on your needs.
-
-## baselines
-
-OpenAI GPT-2 checkpoints allow us to get some baselines in place for openwebtext. We can get the numbers as follows:
+Ceci génère des samples, comme par exemple : 
 
 ```
-$ python train.py eval_gpt2
-$ python train.py eval_gpt2_medium
-$ python train.py eval_gpt2_large
-$ python train.py eval_gpt2_xl
+Art. L121-1
+La commercialisation des établissements publics de coopération intercommunale en application de l'article L. 113-3 est publiée au Journal officiel de l'Union européenne et à l'accomplissement de la police nationale d'affaires par le greffe du tribunal.
+Art. L121-5
+Le président du conseil territorial est applicable en Nouvelle-Calédonie, sous réserve des adaptations prévues par l'article L. 124-9, des articles L. 123-14 et suivants :
+1° Le conseil régional de santé et des propriétaire
+---------------
+
+Art. R211-18
+Les agents de santé publicitaires fait l'objet d'une autre convention préalable si elles sont rendues en fonction de l'état civil en application de l'article L. 2212-9 du code du travail et d'une société professionnelle agricole agricole à concurrence d'une société d'aménagement collectif de la société conclue en application de l'article L. 2211-18.
+Art. L2241-29-1
+Les travailleurs de sociétés agréées par l'association des sociétés d'exploitation et d'enseignement supérieur non majo
+---------------
+
+Art. R122-3
+La présente section est présentée pour les mesures prévues aux articles R. 223-12 à R. 232-87 et portant sur les demandes d'identification du nom des membres présents un président de la cour d'appel ou de la cour d'appel de garantie de procédure pénale de décision.
+L'agent comptable peut également alors faire l'objet d'une mission de liberté.
+Section 3 : Dispositions relatives à l'autorité administrative civile pour le compte de la commission administrative de l'agence régionale de s
+---------------
+
+Ils peuvent être assurés par un organisme intercommunal financier.
+Les demandes de prélèvement du soutien mentionnées au premier alinéa du présent article sont précisées par décret, dans le cadre d'un tiers, des conditions communes, définitives et dont la procédure est communiquée.
+Les conditions d'accès aux fins de mission publique et de notification des cotisations pénales sont éligibles à l'un des sociétés de gestion de leur demande. Si les intéressés n'ont pas été retirés les fois par an, la
+---------------
 ```
 
-and observe the following losses on train and val:
+Ceci est plutôt acceptable, car il n'y a pas d'erreurs grammaticales flagrantes. La sémantique est possiblement améliorable, mais cela nécessiterait plus que du finetuning. Actuellement, cette génération se fait avec un prompt par défaut `\n`, mais il est possible de passer an argument un fichier prompt que le modèle peut compléter, par exemple : 
 
-| model | params | train loss | val loss |
-| ------| ------ | ---------- | -------- |
-| gpt2 | 124M         | 3.11  | 3.12     |
-| gpt2-medium | 350M  | 2.85  | 2.84     |
-| gpt2-large | 774M   | 2.66  | 2.67     |
-| gpt2-xl | 1558M     | 2.56  | 2.54     |
+Pour le reste du projet, nous allons essayer d'optimiser certains paramètres, comme la taille du modèle ou la taille du contexte.  
 
-However, we have to note that GPT-2 was trained on (closed, never released) WebText, while OpenWebText is just a best-effort open reproduction of this dataset. This means there is a dataset domain gap. Indeed, taking the GPT-2 (124M) checkpoint and finetuning on OWT directly for a while reaches loss down to ~2.85. This then becomes the more appropriate baseline w.r.t. reproduction.
-
-## finetuning
-
-Finetuning is no different than training, we just make sure to initialize from a pretrained model and train with a smaller learning rate. For an example of how to finetune a GPT on new text go to `data/shakespeare` and run `prepare.py` to download the tiny shakespeare dataset and render it into a `train.bin` and `val.bin`, using the OpenAI BPE tokenizer from GPT-2. Unlike OpenWebText this will run in seconds. Finetuning can take very little time, e.g. on a single GPU just a few minutes. Run an example finetuning like:
-
-```
-$ python train.py config/finetune_shakespeare.py
-```
-
-This will load the config parameter overrides in `config/finetune_shakespeare.py` (I didn't tune them much though). Basically, we initialize from a GPT2 checkpoint with `init_from` and train as normal, except shorter and with a small learning rate. If you're running out of memory try decreasing the model size (they are `{'gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl'}`) or possibly decreasing the `block_size` (context length). The best checkpoint (lowest validation loss) will be in the `out_dir` directory, e.g. in `out-shakespeare` by default, per the config file. You can then run the code in `sample.py --out_dir=out-shakespeare`:
-
-```
-THEODORE:
-Thou shalt sell me to the highest bidder: if I die,
-I sell thee to the first; if I go mad,
-I sell thee to the second; if I
-lie, I sell thee to the third; if I slay,
-I sell thee to the fourth: so buy or sell,
-I tell thee again, thou shalt not sell my
-possession.
-
-JULIET:
-And if thou steal, thou shalt not sell thyself.
-
-THEODORE:
-I do not steal; I sell the stolen goods.
-
-THEODORE:
-Thou know'st not what thou sell'st; thou, a woman,
-Thou art ever a victim, a thing of no worth:
-Thou hast no right, no right, but to be sold.
-```
-
-Whoa there, GPT, entering some dark place over there. I didn't really tune the hyperparameters in the config too much, feel free to try!
-
-## sampling / inference
-
-Use the script `sample.py` to sample either from pre-trained GPT-2 models released by OpenAI, or from a model you trained yourself. For example, here is a way to sample from the largest available `gpt2-xl` model:
-
-```
-$ python sample.py \
-    --init_from=gpt2-xl \
-    --start="What is the answer to life, the universe, and everything?" \
-    --num_samples=5 --max_new_tokens=100
-```
-
-If you'd like to sample from a model you trained, use the `--out_dir` to point the code appropriately. You can also prompt the model with some text from a file, e.g. `$ python sample.py --start=FILE:prompt.txt`.
-
-## efficiency notes
-
-For simple model benchmarking and profiling, `bench.py` might be useful. It's identical to what happens in the meat of the training loop of `train.py`, but omits much of the other complexities.
-
-Note that the code by default uses [PyTorch 2.0](https://pytorch.org/get-started/pytorch-2.0/). At the time of writing (Dec 29, 2022) this makes `torch.compile()` available in the nightly release. The improvement from the one line of code is noticeable, e.g. cutting down iteration time from ~250ms / iter to 135ms / iter. Nice work PyTorch team!
-
-## todos
-
-- Investigate and add FSDP instead of DDP
-- Eval zero-shot perplexities on standard evals (e.g. LAMBADA? HELM? etc.)
-- Finetune the finetuning script, I think the hyperparams are not great
-- Schedule for linear batch size increase during training
-- Incorporate other embeddings (rotary, alibi)
-- Separate out the optim buffers from model params in checkpoints I think
-- Additional logging around network health (e.g. gradient clip events, magnitudes)
-- Few more investigations around better init etc.
-
-## troubleshooting
-
-Note that by default this repo uses PyTorch 2.0 (i.e. `torch.compile`). This is fairly new and experimental, and not yet available on all platforms (e.g. Windows). If you're running into related error messages try to disable this by adding `--compile=False` flag. This will slow down the code but at least it will run.
-
-For some context on this repository, GPT, and language modeling it might be helpful to watch my [Zero To Hero series](https://karpathy.ai/zero-to-hero.html). Specifically, the [GPT video](https://www.youtube.com/watch?v=kCc8FmEb1nY) is popular if you have some prior language modeling context.
-
-For more questions/discussions feel free to stop by **#nanoGPT** on Discord:
-
-[![](https://dcbadge.vercel.app/api/server/3zy8kqD9Cp?compact=true&style=flat)](https://discord.gg/3zy8kqD9Cp)
-
-## acknowledgements
-
-All nanoGPT experiments are powered by GPUs on [Lambda labs](https://lambdalabs.com), my favorite Cloud GPU provider. Thank you Lambda labs for sponsoring nanoGPT!
+['gendp8'](data/gendp/plots/loss_nlayer8.png)
