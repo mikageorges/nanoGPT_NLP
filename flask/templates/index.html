@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>{% block title %} Projet MSI/NLP : GenDP {% endblock %}</h1>
+    <h4>Mikaël GEORGES</h4>
+
+    <div class="jumbotron mt-4">
+        <h1 class="display-4"><b>Bienvenue sur GenDP!</b></h1>
+        <p class="lead">Générez du texte de droit pénal* avec un modèle <a href="{{ url_for('model') }}">comme ChatGPT</a>.</p>
+        <i>* GenDP, et par extension Mikaël, se détachent de toute responsabilité vis-à-vis des propos énoncés dans les textes générés.</i>
+        <hr class="my-4">
+        <p>Voici un exemple : <i>{{ sample['content'] }}</i></p>
+    
+        <!-- Formulaire pour entrer un prompt -->
+        <form id="textForm" class="form-horizontal" method="post" action="generate">
+          <div class="form-group">
+            <label for="inputText">Entrez un prompt (optionnel):</label>
+            <textarea class="form-control" id="inputText"></textarea>
+            <label for="num_samples">Renseignez le nombre de samples à générer :</label>
+            <input type="number" id="num_samples" name="num_samples" required minlength="1" maxlength="8" placeholder="1" value="{{request.form['num_samples']}}"/>
+            <label for="size_samples">Taille des samples en caractères:</label>
+            <input type="number" id="size_samples" name="size_samples" required minlength="1" maxlength="8" placeholder="500" value="{{request.form['size_samples']}}"/>
+          </div>
+          <button type="submit" class="btn btn-primary" onclick=generate_sample()>Générer Texte</button>
+        </form>
+    
+        <!-- Résultat de la génération -->
+        <div class="mt-4" id="result"></div>
+    </div>
+
+    <h2>Resources:</h2>
+    <ul>
+        <li><a href="https://github.com/mikageorges/nanoGPT_NLP">Github</a></li>
+        <li><a href="https://www.youtube.com/watch?v=kCc8FmEb1nY">Vidéo d'Andrej Karpathy</a></li>
+        <li><a href="https://arxiv.org/abs/1706.03762">Attention is All You Need</a> (Ashish V. et. al., 2017).</li>
+    </ul>
+{% endblock %}

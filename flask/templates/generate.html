@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{% block title %} Voici le résultat de la requête :{% endblock %}</h1>
+
+{% for sample in samples %}
+        <h4>Sample {{loop.index}}/ </h4>
+        <div class="text-wrap">
+            <textarea id="s{{loop.index}}" rows="4" cols="180" readonly>{{sample['content']}}</textarea>
+            <input type="button" value="copy" onclick="copy_to_clipboard('s{{loop.index}}');">
+
+            <script>
+            function copy_to_clipboard(id)
+            {
+                document.getElementById(id).select();
+                document.execCommand('copy');
+            }
+            </script>
+            </div>
+        <hr>
+{% endfor %}
+
+<form action="{{url_for('index')}}">
+    <button type="submit" class="btn btn-primary">Retour à l'accueil</button>
+ </form>
+
+{% endblock %}

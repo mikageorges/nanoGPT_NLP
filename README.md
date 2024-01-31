@@ -99,3 +99,20 @@ Pour le reste du projet, nous allons essayer d'optimiser certains paramètres, c
 
 !['gendp8'](data/gendp/plots/loss_nlayer8.png)
 !['gendp8_1024'](data/gendp/plots/loss_contextsize_1024.png)
+
+## Interface de génération par API Flask
+
+Pour les curieux, dans le répertoire `flask/` se trouve des scripts permettant la configuration d'une interface web utilisant l'API Flask pour utiliser `sample.py` et afficher les résultats sur une page web. Si on veut l'utiliser, il est conseillé de créer un environnement virtuel pour installer la librairie flask. Ensuite, exécuter :
+
+```
+source nlp_env/bin/activate 
+cd flask/
+export FLASK_APP=flask_sample
+export FLASK_ENV=development
+python init_db.py
+flask run
+```
+
+`init_db.py` permet de créer une table SQLite ou seront stockés les samples générés.
+Si tout est bien configuré, http://127.0.0.1:5000/ sera ouvert pour arriver sur la page principale. La navigation est assez explicite donc libre à l'utilisateur de s'en servir. Dans flask/ se trouve une version légèrement modifiée de `sample.py` qui envoie les samples générés à la base de données.
+

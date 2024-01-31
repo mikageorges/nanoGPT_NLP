@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{% block title %} Le modèle derrière GenDP : un Transformer multi-tête{% endblock %}</h1>
+<img src="static/images/transformer.png" width="700" class="center"/>
+<p>L'architecture utilisée ici provient de l'article :<a href="https://arxiv.org/abs/1706.03762">Attention is All You Need</a> (Ashish V. et. al., 2017).L'idée principale derrière le Transformer est que l'attention, en particulier le mécanisme d'auto-attention, permet au modèle de capturer des relations à longue portée dans les séquences sans dépendre de l'ordre séquentiel. Cette architecture est devenue la base traitement du langage naturel moderne et a inspiré de nombreuses avancées, comme le fameux ChatGPT.</p>
+<p>Le texte en entrée est "tokenizé" (cf. <a href="https://github.com/openai/tiktoken/tree/main">tiktoken</a>), puis donné à l'encodeur et décodeur par encodage positionnel. Le mécanisme d'auto-attention retient en mémoire les informations passées. La présence de plusieurs têtes en parallèle permet de concatener les résultats de chaque tête afin d'avoir plusieurs channels de communication.</p>
+
+<table class="table table-bordered">
+    <tr>
+      <th>Corpus/Modèle</th>
+      <th>OpenWebText/GPT-2</th>
+      <th>Droit Pénal/GenDP</th>
+    </tr>
+    <tr>
+        <td>Documents</th>
+        <td>8 million</th>
+        <td>80</th>
+    </tr>
+    <tr>
+      <td>train.bin (bytes)</td>
+      <td>17 GB</td>
+      <td>240 MB</td>
+    </tr>
+    <tr>
+      <td>val.bin (bytes)</td>
+      <td>8.5 MB</td>
+      <td>26.5 MB</td>
+    </tr>
+    <tr>
+        <td>train tokens</td>
+        <td>9 billion</td>
+        <td>122 million</td>
+    </tr>
+    <tr>
+        <td>val tokens</td>
+        <td>4.5 million</td>
+        <td>13 million</td>
+    </tr>
+  </table>
+
+  <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+    <div class="panel panel-default">
+      <div class="panel-heading" role="tab" id="headingOne">
+        <h4 class="panel-title">
+          <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+            <b>Paramètres d'entraînement ></b>
+          </a>
+        </h4>
+      </div>
+      <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+        <div class="panel-body">
+          <div class="panel panel-default">
+            <div class="panel-heading" role="tab" id="headingTwo">
+              <h4 class="panel-title">
+                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                  Graphiques de loss train/val >
+                </a>
+              </h4>
+            </div>
+            
+            <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+              <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="row">
+                      <div class="col-xs-6"><img src="static/images/loss_contextsize_1024.png" width="600"/></div>
+                      <div class ="col-xs-6">
+                        <div class="content"></div>
+                        <ul>
+                          <li>tokens par itération : 131 072</li>
+                          <li>Paramètres : 10.71M</li>
+                          <li>Contexte : 1024 caractères</li>
+                          <li>Nombres de layers : 6</li>
+                          <li>Nombres de têtes : 6</li>
+                          <li>Embeddings : 384</li>
+                          <li>Dropout : 0.2</li>
+                          <li>Learning rate : 1e-3, decay à 1e-4</li>
+                          <li>Epochs : 5000</li>
+                          <li>Batch size : 64</li>
+                        </ul>
+                      </div>
+                      </div>
+                </div>
+
+                <div class="container-fluid">
+                  <div class="row">
+                    <div class="col-xs-6"><img src="static/images/loss_contextsize_512.png" width="600"/></div>
+                    <div class ="col-xs-6">
+                      <ul>
+                        <li>tokens par itération : 65 536</li>
+                        <li>Paramètres : 14.25M</li>
+                        <li>Contexte : 512 caractères</li>
+                        <li>Nombres de layers : 8</li>
+                        <li>Nombres de têtes : 8</li>
+                        <li>Embeddings : 384</li>
+                        <li>Dropout : 0.2</li>
+                        <li>Learning rate : 1e-3, decay à 1e-4</li>
+                        <li>Epochs : 3000</li>
+                        <li>Batch size : 128</li>
+                      </ul>
+                    </div>
+                    </div>
+              </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>  
+  
+
+{% endblock %}
