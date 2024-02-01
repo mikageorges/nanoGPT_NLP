@@ -6,8 +6,10 @@ NanoGPT est un repo permettant un entraînement et un finetuning plus rapide de 
 
 ## Installations préalables
 
+Nécessite python >= 3.10.
+
 ```
-pip install matplotlib torch numpy transformers datasets tiktoken wandb tqdm pickle strip_markdown requests
+pip install matplotlib torch numpy transformers datasets tiktoken wandb tqdm strip_markdown requests
 ```
 
 cf. [nanoGPT](https://github.com/karpathy/nanoGPT) pour les dépendances. [strip_markdown](https://pypi.org/project/strip-markdown/) permet de transcrire les textes en markdown en textes, ce qui servira de préparation de données.
@@ -30,7 +32,7 @@ Ce script crée aussi un `train.bin` et un `val.bin` dans ce répertoire, ce qui
 
 Ainsi, c'est un bon nombre de paramètres du même ordre de grandeur que GPT2.
 
-**Note :** il se peut que l'encodage de script-markdown ne comprenne pas les caractères non-ASCII, tels que `é`. Dans ce cas, nous avons modifié script_markdown.py pour comprendre ces caractères, l.45 :
+**Note :** il se peut que l'encodage de script-markdown ne comprenne pas les caractères non-ASCII, tels que `é`. Dans ce cas, nous avons modifié la librairie script_markdown.py pour comprendre ces caractères, l.45 :
 
 ```
         with filename.open('w', encoding='utf-8') as f:
@@ -95,7 +97,7 @@ Ceci est plutôt acceptable, car il n'y a pas d'erreurs grammaticales et de voca
 $ python .\sample.py --out_dir=out-gendp --start=FILE:prompt.txt
 ```
 
-Pour le reste du projet, nous allons essayer d'optimiser certains paramètres, comme la taille du modèle ou la taille du contexte.  
+Pour le reste du projet, nous allons essayer d'optimiser certains paramètres, comme la taille du modèle ou la taille du contexte. Pour le moment, augmenter la taille de contexte pris en mémoire (256 -> 1024) conduit aux meilleures améliorations, et on arrive à passer à une loss de 0.6 (cf. graphiques ci-dessous). Au niveau du texte généré, la diminution de la loss ne donne pas d'effet considérablement remarquable. 
 
 !['gendp8'](data/gendp/plots/loss_nlayer8.png)
 !['gendp8_1024'](data/gendp/plots/loss_contextsize_1024.png)
