@@ -102,6 +102,16 @@ Pour le reste du projet, nous allons essayer d'optimiser certains paramètres, c
 !['gendp8'](data/gendp/plots/loss_nlayer8.png)
 !['gendp8_1024'](data/gendp/plots/loss_contextsize_1024.png)
 
+## Finetunning du modele: 
+Lorsque l'on pose des questions, il répond pas de manière assez précise, mais parle uniquement de la même manière que les texte entrainés. Nous on veut une discussion comme un chatbot.
+En s'inspirant de la manière dont OpenAI a fait son fine-tunning, on a créer un autre document texte que l'on a intégré au seul script **input.txt** en modifiant le script :
+
+```
+$ python .\data\gendp\prepare.py
+```
+
+Ce texte c'est une liste de Questions - Réponses qu'un utilisateur potentiel va poser au chatbox. Pour ce faire, nous avons pioché des Q&A sur les forums de loi créant un document d'environ 130 000 caractères. Environ 150 questions-réponses.
+
 ## Interface de génération par API Flask
 
 Pour les curieux, dans le répertoire `flask/` se trouve des scripts permettant la configuration d'une interface web utilisant l'API Flask pour utiliser `sample.py` et afficher les résultats sur une page web. Si on veut l'utiliser, il est conseillé de créer un environnement virtuel pour installer la librairie flask. Ensuite, exécuter :
