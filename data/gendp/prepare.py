@@ -9,10 +9,10 @@ import numpy as np
 md_dir = os.getcwd()+"/data/gendp/markdowns"
 txt_dir = os.getcwd()+"/data/gendp/texts"
 
-""" Uncomment pour remplir le dossier texts à partir du dossier markdowns
+'''#Uncomment pour remplir le dossier texts à partir du dossier markdowns
 for md_filename in os.listdir(md_dir):
     input_file_path = os.path.join(md_dir, md_filename)
-    str = strip_markdown.strip_markdown_file(input_file_path, text_fn= os.getcwd()+"/data/gendp/texts") """
+    str = strip_markdown.strip_markdown_file(input_file_path, text_fn= os.getcwd()+"/data/gendp/texts")'''
 
 #concatenate every txt to one file, which will be the input.txt
     
